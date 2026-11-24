@@ -1,0 +1,28 @@
+#!/bin/bash
+# Local X220 Tablet fix for omarchy-fan profiles. Idempotent. Run by a pacman hook after omarchy-fan-helper changes.
+#  1. sensors: /proc/acpi/ibm/thermal does not exist on this kernel -> coretemp by name (hottest of Package, Core 0, Core 1)
+#  2. levels:  load-focused curves (stock idle floor, earlier ramp above ~55 C)
+# Usage: omarchy-fan-local-profiles [dir]
+set -e
+dir=${1:-/usr/share/omarchy-fan/profiles}
+for n in quiet balanced performance; do [ -e "$dir/$n.yaml" ] || { echo "missing $dir/$n.yaml" >&2; exit 1; }; done
+
+fix() {  # name, level rows...
+  local f=$dir/$1.yaml; shift
+  if grep -q 'tpacpi: /proc/acpi/ibm/thermal' "$f"; then
+    [ -e "$f.orig" ] || cp -p "$f" "$f.orig"
+    sed -i -e '/- tpacpi: \/proc\/acpi\/ibm\/thermal/{N;c\  - hwmon: /sys/class/hwmon\n    name: coretemp\n    indices: [1, 2, 3]
+}' "$f"
+    sed -i '1a # Local X220 Tablet edit: no /proc/acpi/ibm/thermal on this kernel, so the sensor is coretemp (hottest of Package, Core 0, Core 1).' "$f"
+  fi
+  [ -e "$f.pre-aggressive" ] || cp -p "$f" "$f.pre-aggressive"
+  sed -i '/^levels:/,$d' "$f"
+  { echo "levels:"; printf '  %s\n' "$@"; } >> "$f"
+  echo "omarchy-fan-local-profiles: $f ok"
+}
+fix quiet \
+ '- [1, 0, 56]' '- [2, 52, 60]' '- [3, 57, 64]' '- [4, 61, 67]' '- [5, 64, 70]' '- [6, 67, 73]' '- [7, 70, 76]' '- ["level full-speed", 74, 32767]'
+fix balanced \
+ '- [1, 0, 52]' '- [2, 48, 56]' '- [3, 53, 60]' '- [4, 57, 63]' '- [5, 60, 66]' '- [6, 63, 69]' '- [7, 66, 72]' '- ["level full-speed", 70, 32767]'
+fix performance \
+ '- [1, 0, 47]' '- [2, 43, 51]' '- [3, 48, 54]' '- [4, 51, 57]' '- [5, 54, 60]' '- [6, 57, 63]' '- [7, 60, 66]' '- ["level full-speed", 64, 32767]'

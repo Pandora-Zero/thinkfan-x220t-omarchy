@@ -1,0 +1,28 @@
+# thinkfan config for ThinkPad X220 Tablet (i7-2620M, Sandy Bridge, kernel 7.x)
+#
+# This kernel has no /proc/acpi/ibm/thermal, so temperatures come from the CPU's
+# coretemp hwmon (Package, Core 0, Core 1) and thinkfan follows the hottest one.
+# coretemp is found by NAME, so it survives hwmonN renumbering across boots.
+#
+# CPU limits: high = 86 C, crit = 100 C. Firmware "auto" currently holds about
+# 3600-4100 RPM at 59-64 C, so this curve is deliberately not quieter than that:
+# the fan is never off, it ramps early, and it is at full speed from 76 C.
+# Each row is [level, lower bound, upper bound]; the overlap is the hysteresis.
+
+sensors:
+  - hwmon: /sys/class/hwmon
+    name: coretemp
+    indices: [1, 2, 3]
+
+fans:
+  - tpacpi: /proc/acpi/ibm/fan
+
+levels:
+  - [1, 0, 52]
+  - [2, 48, 57]
+  - [3, 54, 61]
+  - [4, 58, 65]
+  - [5, 62, 69]
+  - [6, 66, 73]
+  - [7, 70, 78]
+  - ["level full-speed", 75, 32767]
