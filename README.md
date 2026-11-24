@@ -57,3 +57,17 @@ Expect the fan level to climb with temperature, a plateau well below 86 C, and a
 - Root cause is upstream (profile sensor assumption + thinkfan abort); no upstream report filed yet.
 - The curves are tuned by reasoning and a few readings, not by long benchmarking. Adjust to taste.
 - Package updates overwrite the profile files; the hook is untested against a real package upgrade.
+
+## Contributing
+Improvements are welcome. Open an issue or a pull request. Useful things to send:
+
+- **Other models:** if it works (or does not) on another ThinkPad, open an issue with your model, kernel version,
+  and the output of `omarchyfan doctor`.
+- **Curve changes:** include numbers from a load run (see "Test under load"): CPU temperature, fan level and RPM at the
+  start, at the peak, and two minutes after the load ends. Say which profile you changed and why.
+- **Hook testing:** the pacman hook has not been tested against a real `omarchy-fan-helper` upgrade. Reports of what
+  happened to `/usr/share/omarchy-fan/profiles/*.yaml` after an upgrade are valuable.
+- **Upstream:** if you know the proper fix in omarchy-fan or thinkfan (handling a missing `/proc/acpi/ibm/thermal`),
+  link the upstream issue or PR here so this workaround can be retired.
+
+Please do not include personal data (hostnames, usernames, serial numbers) in issues or logs you paste.
